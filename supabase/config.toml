@@ -401,6 +401,12 @@ verify_jwt = true
 # before recording it -- this is the sole server-side gate on trick_plays writes.
 verify_jwt = true
 
+[functions.make-bid]
+# Requires a valid user JWT on every call; the function additionally checks the caller is one
+# of the 4 seated players in the target game and that it is their turn to bid before recording
+# the bid and, on a successful call, finalizing trump/maker on the hand.
+verify_jwt = true
+
 [analytics]
 enabled = true
 port = 54327
