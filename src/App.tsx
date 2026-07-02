@@ -3,12 +3,26 @@ import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
 import './App.css'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
 
-function App() {
+function TopBar() {
+  const { displayName, signOut } = useAuth()
+
+  return (
+    <div style={{ padding: '0.5rem 1rem', background: '#222', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span>Logged in as {displayName ?? '...'}</span>
+      <button type="button" onClick={signOut}>Sign Out</button>
+    </div>
+  )
+}
+
+function AppContent() {
   const [count, setCount] = useState(0)
 
   return (
     <>
+      <TopBar />
       <section id="center">
         <div className="hero">
           <img src={heroImg} className="base" width="170" height="179" alt="" />
@@ -116,6 +130,16 @@ function App() {
       <div className="ticks"></div>
       <section id="spacer"></section>
     </>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <ProtectedRoute>
+        <AppContent />
+      </ProtectedRoute>
+    </AuthProvider>
   )
 }
 
