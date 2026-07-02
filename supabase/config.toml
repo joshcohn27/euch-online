@@ -390,6 +390,17 @@ deno_version = 2
 # of the 4 seated players in the target game.
 verify_jwt = true
 
+[functions.get-my-hand]
+# Requires a valid user JWT on every call; the function additionally checks the caller is one
+# of the 4 seated players in the target game before returning only their own seat's cards.
+verify_jwt = true
+
+[functions.play-card]
+# Requires a valid user JWT on every call; the function additionally checks the caller is one
+# of the 4 seated players in the target game, that it is their turn, and that the play is legal
+# before recording it -- this is the sole server-side gate on trick_plays writes.
+verify_jwt = true
+
 [analytics]
 enabled = true
 port = 54327
