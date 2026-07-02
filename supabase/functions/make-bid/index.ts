@@ -7,6 +7,7 @@ import {
   type BidAction,
 } from '../../../src/engine/bidding.ts'
 import { corsHeaders } from '../_shared/cors.ts'
+import { broadcastGameEvent } from '../_shared/broadcast.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -280,6 +281,22 @@ Deno.serve(async (req: Request) => {
       nextRound = effectiveRound
       nextSeat = bidOrderForRound(dealerSeat)[allActions.length]
     }
+
+    await broadcastGameEvent(db, SUPABASE_SERVICE_ROLE_KEY, hand.game_id, {
+      type: 'bid_made',
+      gameId: hand.game_id,
+      handId,
+      seat: callerSeat,
+      action: bidRequestAction,
+      suit,
+      alone,
+      status: newStatus,
+      round: nextRound,
+      nextSeat,
+      called: outcome.called,
+      trumpSuit: outcome.called ? outcome.trumpSuit : null,
+      makerSeat: outcome.called ? outcome.maker : null,
+    })
 
     return jsonResponse(
       {

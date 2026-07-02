@@ -3,6 +3,7 @@ import type { Card, PlayedCard, Rank, Seat, Suit, TrickState } from '../../../sr
 import { isLegalPlay, resolveTrick } from '../../../src/engine/trickResolution.ts'
 import { getEffectiveSuit } from '../../../src/engine/trumpRules.ts'
 import { corsHeaders } from '../_shared/cors.ts'
+import { broadcastGameEvent } from '../_shared/broadcast.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -262,6 +263,17 @@ Deno.serve(async (req: Request) => {
         return jsonResponse({ error: 'Failed to record trick winner' }, 500)
       }
     }
+
+    await broadcastGameEvent(db, SUPABASE_SERVICE_ROLE_KEY, hand.game_id, {
+      type: 'card_played',
+      gameId: hand.game_id,
+      handId,
+      seat: callerSeat,
+      card,
+      trickNumber,
+      cardsPlayed,
+      winnerSeat,
+    })
 
     return jsonResponse(
       {

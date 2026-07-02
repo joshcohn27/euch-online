@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { buildDeck, shuffleDeck, dealHand } from '../../../src/engine/deck.ts'
 import { corsHeaders } from '../_shared/cors.ts'
+import { broadcastGameEvent } from '../_shared/broadcast.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -157,6 +158,14 @@ Deno.serve(async (req: Request) => {
       await db.from('hands').delete().eq('id', newHand.id)
       return jsonResponse({ error: 'A hand is already being dealt for this game, try again' }, 409)
     }
+
+    await broadcastGameEvent(db, SUPABASE_SERVICE_ROLE_KEY, gameId, {
+      type: 'hand_dealt',
+      gameId,
+      handId: newHand.id,
+      handNumber: newHand.hand_number,
+      dealerSeat: newDealerSeat,
+    })
 
     return jsonResponse({ handId: newHand.id, handNumber: newHand.hand_number }, 200)
   } catch (err) {

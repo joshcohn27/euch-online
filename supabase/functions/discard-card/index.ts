@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import type { Card, Rank, Seat, Suit } from '../../../src/engine/types.ts'
 import { corsHeaders } from '../_shared/cors.ts'
+import { broadcastGameEvent } from '../_shared/broadcast.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -151,6 +152,14 @@ Deno.serve(async (req: Request) => {
     if (updateHandError) {
       return jsonResponse({ error: 'Failed to finalize hand after discard' }, 500)
     }
+
+    await broadcastGameEvent(db, SUPABASE_SERVICE_ROLE_KEY, hand.game_id, {
+      type: 'card_discarded',
+      gameId: hand.game_id,
+      handId,
+      seat: dealerSeat,
+      status: 'playing',
+    })
 
     return jsonResponse({ handId, status: 'playing' }, 200)
   } catch (err) {
