@@ -1,4 +1,4 @@
-import type { Card, HandState, Rank, Seat, Suit } from './types'
+import type { Card, HandState, Rank, Seat, Suit } from './types.ts'
 
 export function c(suit: Suit, rank: Rank): Card {
   return { suit, rank }

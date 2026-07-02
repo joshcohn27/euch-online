@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { isGameOver, scoreHand } from './scoring'
-import { emptyHandState } from './testUtils'
-import type { GameRules } from './types'
+import { isGameOver, scoreHand } from './scoring.ts'
+import { emptyHandState } from './testUtils.ts'
+import type { GameRules } from './types.ts'
 
 const rules: GameRules = { stickTheDealer: true, winByTwo: false, throwDowns: true }
 

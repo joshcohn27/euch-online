@@ -5,10 +5,10 @@ import {
   isValidRound2Suit,
   processRound1,
   processRound2,
-} from './bidding'
-import { c } from './testUtils'
-import type { BidAction } from './bidding'
-import type { GameRules } from './types'
+} from './bidding.ts'
+import { c } from './testUtils.ts'
+import type { BidAction } from './bidding.ts'
+import type { GameRules } from './types.ts'
 
 const turnedUp = c('hearts', 'Q')
 const noStick: GameRules = { stickTheDealer: false, winByTwo: false, throwDowns: true }

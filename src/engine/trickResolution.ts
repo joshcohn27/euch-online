@@ -1,5 +1,5 @@
-import type { Card, Seat, Suit, TrickState } from './types'
-import { getCardRank, getEffectiveSuit } from './trumpRules'
+import type { Card, Seat, Suit, TrickState } from './types.ts'
+import { getCardRank, getEffectiveSuit } from './trumpRules.ts'
 
 /**
  * Determines the winning seat of a trick. Works with 3 or 4 cards played

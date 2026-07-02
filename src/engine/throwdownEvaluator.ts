@@ -1,7 +1,7 @@
-import type { Card, HandState, Seat, Suit, Team } from './types'
-import { teamOfSeat } from './types'
-import { buildDeck } from './deck'
-import { getCardRank, getEffectiveSuit } from './trumpRules'
+import type { Card, HandState, Seat, Suit, Team } from './types.ts'
+import { teamOfSeat } from './types.ts'
+import { buildDeck } from './deck.ts'
+import { getCardRank, getEffectiveSuit } from './trumpRules.ts'
 
 export type ThrowdownCondition = 'trick_lock' | 'count_lock' | 'loner_lock'
 

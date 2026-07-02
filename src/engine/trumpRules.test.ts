@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { getCardRank, getEffectiveSuit, isLeftBower, isRightBower } from './trumpRules'
-import { c } from './testUtils'
+import { getCardRank, getEffectiveSuit, isLeftBower, isRightBower } from './trumpRules.ts'
+import { c } from './testUtils.ts'
 
 describe('isLeftBower', () => {
   it('is true for the jack of the same color as trump', () => {

@@ -1,4 +1,4 @@
-import type { GameRules, HandState, Team } from './types'
+import type { GameRules, HandState, Team } from './types.ts'
 
 export type HandScore = Record<Team, number>
 

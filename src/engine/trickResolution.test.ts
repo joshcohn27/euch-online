@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { isLegalPlay, resolveTrick } from './trickResolution'
-import { c } from './testUtils'
-import type { TrickState } from './types'
+import { isLegalPlay, resolveTrick } from './trickResolution.ts'
+import { c } from './testUtils.ts'
+import type { TrickState } from './types.ts'
 
 describe('resolveTrick', () => {
   it('the left bower wins over other trump and led-suit cards', () => {

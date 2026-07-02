@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { evaluateThrowdown } from './throwdownEvaluator'
-import { c, emptyHandState } from './testUtils'
-import type { Card } from './types'
+import { evaluateThrowdown } from './throwdownEvaluator.ts'
+import { c, emptyHandState } from './testUtils.ts'
+import type { Card } from './types.ts'
 
 // Common trick_lock / loner_lock fixture: trump = spades, fromSeat holds A-spades, A-diamonds,
 // A-hearts. Every trump card besides A-spades has already been played (seen), so fromSeat's

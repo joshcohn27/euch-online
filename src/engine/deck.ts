@@ -1,4 +1,4 @@
-import type { Card, Seat, Suit, Rank } from './types'
+import type { Card, Seat, Suit, Rank } from './types.ts'
 
 const SUITS: Suit[] = ['clubs', 'diamonds', 'hearts', 'spades']
 const RANKS: Rank[] = ['9', '10', 'J', 'Q', 'K', 'A']

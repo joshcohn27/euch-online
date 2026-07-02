@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildDeck, dealHand, shuffleDeck } from './deck'
+import { buildDeck, dealHand, shuffleDeck } from './deck.ts'
 
 describe('buildDeck', () => {
   it('builds 24 unique cards, 6 ranks across 4 suits', () => {

@@ -1,5 +1,5 @@
-import type { Card, GameRules, Seat, Suit, Team } from './types'
-import { teamOfSeat } from './types'
+import type { Card, GameRules, Seat, Suit, Team } from './types.ts'
+import { teamOfSeat } from './types.ts'
 
 export type BidAction =
   | { seat: Seat; type: 'pass' }

@@ -1,4 +1,4 @@
-import type { Card, Rank, Suit } from './types'
+import type { Card, Rank, Suit } from './types.ts'
 
 const RANK_VALUE: Record<Rank, number> = {
   '9': 0,
