@@ -407,6 +407,11 @@ verify_jwt = true
 # the bid and, on a successful call, finalizing trump/maker on the hand.
 verify_jwt = true
 
+[functions.discard-card]
+# Requires a valid user JWT on every call; the function additionally checks the caller is the
+# dealer for the target hand and that the hand is awaiting a discard before recording it.
+verify_jwt = true
+
 [analytics]
 enabled = true
 port = 54327
