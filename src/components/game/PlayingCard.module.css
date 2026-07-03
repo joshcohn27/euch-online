@@ -1,0 +1,84 @@
+.card {
+  position: relative;
+  background: #fbfbf9;
+  border: 1.5px solid #d6d6cc;
+  border-radius: 9px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.small {
+  width: 54px;
+  height: 76px;
+  --corner-rank-size: 11px;
+  --corner-suit-size: 9px;
+  --center-size: 24px;
+}
+
+.large {
+  width: 74px;
+  height: 104px;
+  --corner-rank-size: 14px;
+  --corner-suit-size: 12px;
+  --center-size: 33px;
+}
+
+.trump {
+  border: 2px solid #ba7517;
+}
+
+.faceDown {
+  background-color: #16264a;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.12) 0 2px, transparent 2px 12px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.12) 0 2px, transparent 2px 12px);
+  border-color: #0d1a33;
+  overflow: hidden;
+}
+
+.faceDownFrame {
+  position: absolute;
+  inset: 5px;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  border-radius: 5px;
+}
+
+.cornerTopLeft,
+.cornerBottomRight {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.cornerTopLeft {
+  top: 5px;
+  left: 6px;
+}
+
+.cornerBottomRight {
+  bottom: 5px;
+  right: 6px;
+  transform: rotate(180deg);
+}
+
+.rank {
+  font-weight: 500;
+  font-size: var(--corner-rank-size);
+}
+
+.cornerSuit {
+  font-size: var(--corner-suit-size);
+  margin-top: 1px;
+}
+
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: var(--center-size);
+  line-height: 1;
+}

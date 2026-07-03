@@ -1,0 +1,175 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+.felt {
+  position: relative;
+  width: 900px;
+  height: 480px;
+  background: #12503c;
+  border: 6px solid #6b4a30;
+  border-radius: 200px / 170px;
+}
+
+.trumpBadge {
+  position: absolute;
+  top: 20px;
+  left: 28px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fac775;
+  color: #412402;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+
+.trumpSymbol {
+  font-size: 16px;
+}
+
+.scoreRow {
+  position: absolute;
+  top: 20px;
+  right: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.pill {
+  background: rgba(255, 255, 255, 0.15);
+  color: #eaf6ee;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.partnerSeat {
+  position: absolute;
+  top: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.leftSeat {
+  position: absolute;
+  left: 56px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.rightSeat {
+  position: absolute;
+  right: 56px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.seatMarker,
+.youMarker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #2f7a5c;
+  color: #eaf6ee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.seatName {
+  color: #eaf6ee;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.badgeRow {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.disconnected {
+  opacity: 0.55;
+}
+
+.trickArea {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 220px;
+  height: 180px;
+}
+
+.trickTop {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.trickBottom {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.trickLeft {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.trickRight {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.trickSlotEmpty {
+  width: 54px;
+  height: 76px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 9px;
+}
+
+.youRow {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+}
+
+.hand {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  margin-top: 10px;
+  padding: 0 0 12px;
+}
+
+.handCard {
+  margin: 0 -10px;
+  transform-origin: bottom center;
+}

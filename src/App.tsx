@@ -5,6 +5,7 @@ import heroImg from './assets/hero.png'
 import './App.css'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import DevPreview from './pages/DevPreview'
 
 function TopBar() {
   const { displayName, signOut } = useAuth()
@@ -134,6 +135,12 @@ function AppContent() {
 }
 
 function App() {
+  // Temporary, removable: lets Phase 3 checkpoint 1's static components be viewed with mock
+  // props before they're wired to real state. No auth required since it's not real app data.
+  if (window.location.pathname === '/dev-preview') {
+    return <DevPreview />
+  }
+
   return (
     <AuthProvider>
       <ProtectedRoute>

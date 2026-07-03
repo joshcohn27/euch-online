@@ -1,0 +1,153 @@
+.page {
+  background: #12503c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+.card {
+  width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 32px;
+}
+
+.title {
+  color: #eaf6ee;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.joinCodeRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+.joinCodeLabel {
+  color: #b9d6c4;
+  font-size: 13px;
+}
+
+.joinCode {
+  color: #eaf6ee;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  flex: 1;
+}
+
+.copyButton {
+  background: rgba(255, 255, 255, 0.14);
+  color: #eaf6ee;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.copyButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.rulesSummary {
+  color: #b9d6c4;
+  font-size: 13px;
+}
+
+.seatGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.seatCard,
+.seatCardEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 18px 10px;
+  border-radius: 12px;
+  min-height: 100px;
+}
+
+.seatCard {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.seatCardEmpty {
+  border: 1.5px dashed rgba(255, 255, 255, 0.3);
+}
+
+.waitingLabel {
+  color: #b9d6c4;
+  font-size: 13px;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #2f7a5c;
+  color: #eaf6ee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.seatName {
+  color: #eaf6ee;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.badgeRow {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pill {
+  background: rgba(255, 255, 255, 0.15);
+  color: #eaf6ee;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.startButton {
+  background: #12503c;
+  color: #eaf6ee;
+  border: 1.5px solid #fac775;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.startButton:hover:not(:disabled) {
+  background: #17614a;
+}
+
+.startButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.3);
+}
