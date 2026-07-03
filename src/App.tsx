@@ -6,6 +6,7 @@ import './App.css'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import DevPreview from './pages/DevPreview'
+import GameLobby from './pages/GameLobby'
 
 function TopBar() {
   const { displayName, signOut } = useAuth()
@@ -22,7 +23,7 @@ function AppContent() {
   const [count, setCount] = useState(0)
 
   return (
-    <>
+    <div className="starterShell">
       <TopBar />
       <section id="center">
         <div className="hero">
@@ -130,7 +131,7 @@ function AppContent() {
 
       <div className="ticks"></div>
       <section id="spacer"></section>
-    </>
+    </div>
   )
 }
 
@@ -139,6 +140,21 @@ function App() {
   // props before they're wired to real state. No auth required since it's not real app data.
   if (window.location.pathname === '/dev-preview') {
     return <DevPreview />
+  }
+
+  // Temporary, removable: reachable route for Phase 3 checkpoint 3's create/join/lobby flow
+  // before it's wired into real app routing. The optional /:joinCode segment lets a refresh
+  // or a shared link land back in the same lobby instead of the entry screen.
+  const gameLobbyMatch = window.location.pathname.match(/^\/game-lobby(?:\/([^/]+))?\/?$/)
+  if (gameLobbyMatch) {
+    const initialJoinCode = gameLobbyMatch[1] ? decodeURIComponent(gameLobbyMatch[1]) : null
+    return (
+      <AuthProvider>
+        <ProtectedRoute>
+          <GameLobby initialJoinCode={initialJoinCode} />
+        </ProtectedRoute>
+      </AuthProvider>
+    )
   }
 
   return (

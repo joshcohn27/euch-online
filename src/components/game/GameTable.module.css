@@ -2,6 +2,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -9,6 +12,7 @@
   position: relative;
   width: 900px;
   height: 480px;
+  flex-shrink: 0;
   background: #12503c;
   border: 6px solid #6b4a30;
   border-radius: 200px / 170px;

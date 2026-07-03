@@ -141,15 +141,19 @@ Deno.serve(async (req: Request) => {
 
     // Advance the game's rolling dealer/hand-number pointer for the next deal-hand call.
     // The hand_number match guards against a concurrent deal-hand call racing this one.
+    // Dealing hand 1 is what actually starts the game, so it also flips status to 'playing'
+    // here rather than via a separate client-driven update.
+    const gameUpdate: { dealer_seat: number; hand_number: number; status?: string } = {
+      dealer_seat: (newDealerSeat + 1) % 4,
+      hand_number: newHandNumber,
+    }
+    if (newHandNumber === 1) {
+      gameUpdate.status = 'playing'
+    }
+
     const { error: updateGameError, count } = await db
       .from('games')
-      .update(
-        {
-          dealer_seat: (newDealerSeat + 1) % 4,
-          hand_number: newHandNumber,
-        },
-        { count: 'exact' },
-      )
+      .update(gameUpdate, { count: 'exact' })
       .eq('id', gameId)
       .eq('hand_number', game.hand_number)
 
