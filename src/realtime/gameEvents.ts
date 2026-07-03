@@ -8,6 +8,12 @@ export function gameChannelTopic(gameId: string): string {
 
 export type GameEvent =
   | {
+      type: 'player_joined'
+      gameId: string
+      seat: Seat
+      userId: string
+    }
+  | {
       type: 'hand_dealt'
       gameId: string
       handId: string

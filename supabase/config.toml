@@ -412,6 +412,17 @@ verify_jwt = true
 # dealer for the target hand and that the hand is awaiting a discard before recording it.
 verify_jwt = true
 
+[functions.create-game]
+# Requires a valid user JWT on every call; creates the game and seats the caller at seat 0
+# using the service role, since games/players have no client-side insert policy yet.
+verify_jwt = true
+
+[functions.join-game]
+# Requires a valid user JWT on every call; the function additionally checks whether the caller
+# is already seated (returns their existing seat if so) and that the game isn't full before
+# seating them at the lowest open seat.
+verify_jwt = true
+
 [analytics]
 enabled = true
 port = 54327
