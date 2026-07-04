@@ -46,8 +46,13 @@
   gap: 6px;
 }
 
-.primaryButton:hover {
+.primaryButton:hover:not(:disabled) {
   background: #17614a;
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .secondaryButton {
@@ -61,8 +66,13 @@
   cursor: pointer;
 }
 
-.secondaryButton:hover {
+.secondaryButton:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.2);
+}
+
+.secondaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .aloneRow {
@@ -85,6 +95,11 @@
   border: none;
   padding: 0;
   cursor: pointer;
+}
+
+.switchTrack:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .switchKnob {

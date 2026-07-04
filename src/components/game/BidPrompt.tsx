@@ -6,8 +6,11 @@ import styles from './BidPrompt.module.css'
 interface BidPromptRound1Props {
   round: 1
   turnedUpSuit: Suit
+  // The dealer can never order themselves up in round 1 -- a fixed rule, not derived game state.
+  isDealer?: boolean
   onOrderUp?: (alone: boolean) => void
   onPass?: () => void
+  disabled?: boolean
 }
 
 interface BidPromptRound2Props {
@@ -15,6 +18,7 @@ interface BidPromptRound2Props {
   legalSuits: Suit[]
   onCallSuit?: (suit: Suit, alone: boolean) => void
   onPass?: () => void
+  disabled?: boolean
 }
 
 type BidPromptProps = BidPromptRound1Props | BidPromptRound2Props
@@ -45,6 +49,7 @@ export default function BidPrompt(props: BidPromptProps) {
           aria-checked={alone}
           className={`${styles.switchTrack} ${alone ? styles.switchOn : ''}`}
           onClick={() => setAlone((a) => !a)}
+          disabled={props.disabled}
         >
           <span className={styles.switchKnob} />
         </button>
@@ -52,9 +57,16 @@ export default function BidPrompt(props: BidPromptProps) {
 
       <div className={styles.buttonRow}>
         {props.round === 1 ? (
-          <button type="button" className={styles.primaryButton} onClick={() => props.onOrderUp?.(alone)}>
-            Order Up
-          </button>
+          !props.isDealer && (
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={() => props.onOrderUp?.(alone)}
+              disabled={props.disabled}
+            >
+              Order Up
+            </button>
+          )
         ) : (
           props.legalSuits.map((suit) => (
             <button
@@ -62,13 +74,14 @@ export default function BidPrompt(props: BidPromptProps) {
               type="button"
               className={styles.primaryButton}
               onClick={() => props.onCallSuit?.(suit, alone)}
+              disabled={props.disabled}
             >
               <span style={{ color: suitColor(suit) }}>{suitSymbol(suit)}</span> Call {suitLabel(suit)}
             </button>
           ))
         )}
 
-        <button type="button" className={styles.secondaryButton} onClick={() => props.onPass?.()}>
+        <button type="button" className={styles.secondaryButton} onClick={() => props.onPass?.()} disabled={props.disabled}>
           Pass
         </button>
       </div>

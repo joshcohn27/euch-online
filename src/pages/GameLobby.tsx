@@ -1,17 +1,23 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, ReactNode } from 'react'
 import { FunctionsHttpError } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
-import type { Seat } from '../engine/types.ts'
+import { useAuth } from '../context/AuthContext'
+import type { Card, Seat, Suit } from '../engine/types.ts'
+import { bidOrderForRound } from '../engine/bidding.ts'
 import { useGameChannel } from '../hooks/useGameChannel'
 import type { GameEvent } from '../hooks/useGameChannel'
 import Lobby from '../components/game/Lobby'
 import type { LobbySeat } from '../components/game/Lobby'
+import GameTable from '../components/game/GameTable'
+import type { GameSeat } from '../components/game/GameTable'
+import BidPrompt from '../components/game/BidPrompt'
 import styles from './GameLobby.module.css'
 
 type Screen = 'entry' | 'loading' | 'lobby' | 'started'
 
 const SEATS: Seat[] = [0, 1, 2, 3]
+const SUITS: Suit[] = ['clubs', 'diamonds', 'hearts', 'spades']
 
 // Games have no house-rules configuration yet (tied to a lobby settings flow not yet built).
 const HOUSE_RULES_SUMMARY = 'Default rules (house rules configuration coming soon)'
@@ -27,6 +33,68 @@ function getInitials(name: string): string {
   if (parts.length === 0) return '??'
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
   return (parts[0][0] + parts[1][0]).toUpperCase()
+}
+
+interface PlayerRow {
+  seat: Seat
+  userId: string
+  connected: boolean
+  name: string
+}
+
+interface HandInfo {
+  handId: string
+  dealerSeat: Seat
+  trumpSuit: Suit | null
+  status: string
+}
+
+interface BidState {
+  round: 1 | 2
+  nextSeat: Seat | null
+  turnedUpCard: Card
+  passedSeats: Seat[]
+}
+
+// Bidding/trick state isn't wired up until checkpoints 5-8, so this is a plain label rather
+// than the real BidPrompt or a turn indicator.
+function statusLabelFor(status: string): string {
+  switch (status) {
+    case 'bidding':
+      return 'Bidding in progress'
+    case 'discarding':
+      return 'Dealer is discarding'
+    case 'playing':
+      return 'Hand in progress'
+    case 'complete':
+      return 'Hand complete'
+    default:
+      return status
+  }
+}
+
+function buildGameSeats(
+  rows: PlayerRow[],
+  dealerSeat: Seat,
+  currentUserId: string | null,
+  passedSeats: Seat[],
+): GameSeat[] {
+  return SEATS.map((seat) => {
+    const hasPassed = passedSeats.includes(seat)
+    const row = rows.find((r) => r.seat === seat)
+    if (!row) {
+      return { seat, name: 'Unknown', initials: '??', isYou: false, isDealer: seat === dealerSeat, hasPassed, connected: false }
+    }
+    return {
+      seat,
+      name: row.name,
+      initials: getInitials(row.name),
+      isYou: row.userId === currentUserId,
+      isDealer: seat === dealerSeat,
+      hasPassed,
+      connected: row.connected,
+    }
+  })
 }
 
 async function invokeFunction<T>(name: string, body?: Record<string, unknown>): Promise<T> {
@@ -51,13 +119,19 @@ export interface GameLobbyProps {
 }
 
 export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
+  const { user } = useAuth()
   const [screen, setScreen] = useState<Screen>(initialJoinCode ? 'loading' : 'entry')
   const [gameId, setGameId] = useState<string | null>(null)
   const [joinCode, setJoinCode] = useState<string | null>(null)
   const [seats, setSeats] = useState<LobbySeat[]>(SEATS.map((seat) => ({ seat, filled: false })))
+  const [playerRows, setPlayerRows] = useState<PlayerRow[]>([])
+  const [handInfo, setHandInfo] = useState<HandInfo | null>(null)
+  const [bidState, setBidState] = useState<BidState | null>(null)
+  const [myHand, setMyHand] = useState<Card[]>([])
   const [joinCodeInput, setJoinCodeInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [lobbyLoading, setLobbyLoading] = useState(false)
+  const [tableLoading, setTableLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const loadLobby = useCallback(async (id: string) => {
@@ -79,7 +153,7 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
 
     const { data: players, error: playersError } = await supabase
       .from('players')
-      .select('seat, user_id')
+      .select('seat, user_id, connected')
       .eq('game_id', id)
 
     if (playersError || !players) {
@@ -104,6 +178,15 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
       nameById = new Map((profiles ?? []).map((p) => [p.id, p.display_name as string | null]))
     }
 
+    setPlayerRows(
+      players.map((p) => ({
+        seat: p.seat as Seat,
+        userId: p.user_id as string,
+        connected: p.connected as boolean,
+        name: nameById.get(p.user_id) ?? 'Player',
+      })),
+    )
+
     setSeats(
       SEATS.map((seat) => {
         const row = players.find((p) => p.seat === seat)
@@ -120,11 +203,86 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
     )
   }, [])
 
+  const loadTable = useCallback(async (id: string) => {
+    try {
+      const { data: game, error: gameError } = await supabase
+        .from('games')
+        .select('hand_number')
+        .eq('id', id)
+        .single()
+
+      if (gameError || !game) {
+        setError('Failed to load game')
+        return
+      }
+
+      const { data: hand, error: handError } = await supabase
+        .from('hands')
+        .select('id, dealer_seat, trump_suit, status, bid_round, kitty')
+        .eq('game_id', id)
+        .eq('hand_number', game.hand_number)
+        .maybeSingle()
+
+      if (handError) {
+        setError('Failed to load hand')
+        return
+      }
+      if (!hand) {
+        setError('No active hand found for this game')
+        return
+      }
+
+      const dealerSeat = hand.dealer_seat as Seat
+
+      setHandInfo({
+        handId: hand.id as string,
+        dealerSeat,
+        trumpSuit: hand.trump_suit as Suit | null,
+        status: hand.status as string,
+      })
+
+      const bidRound = hand.bid_round as 1 | 2 | null
+      if (hand.status === 'bidding' && bidRound) {
+        const { data: bids, error: bidsError } = await supabase
+          .from('bids')
+          .select('seat, action')
+          .eq('hand_id', hand.id)
+          .eq('round', bidRound)
+
+        if (bidsError) {
+          setError('Failed to load bid state')
+          return
+        }
+
+        const existingBids = bids ?? []
+        const order = bidOrderForRound(dealerSeat)
+        const nextSeat = existingBids.length < 4 ? order[existingBids.length] : null
+        const passedSeats = existingBids.filter((b) => b.action === 'pass').map((b) => b.seat as Seat)
+        const kitty = hand.kitty as Card[]
+
+        setBidState({ round: bidRound, nextSeat, turnedUpCard: kitty[0], passedSeats })
+      } else {
+        setBidState(null)
+      }
+
+      const cardsData = await invokeFunction<{ seat: number; cards: Card[] }>('get-my-hand', { handId: hand.id })
+      setMyHand(cardsData.cards)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load hand')
+    }
+  }, [])
+
   useEffect(() => {
     if (!gameId || screen !== 'lobby') return
     setLobbyLoading(true)
     loadLobby(gameId).finally(() => setLobbyLoading(false))
   }, [gameId, screen, loadLobby])
+
+  useEffect(() => {
+    if (!gameId || screen !== 'started') return
+    setTableLoading(true)
+    loadTable(gameId).finally(() => setTableLoading(false))
+  }, [gameId, screen, loadTable])
 
   // A join code in the URL (fresh page load, refresh, or shared link) is resolved the same way
   // as the manual join form -- join-game is idempotent for a caller who is already seated, so
@@ -157,6 +315,9 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
       if (gameId) loadLobby(gameId)
     } else if (event.type === 'hand_dealt') {
       setScreen('started')
+      if (gameId) loadTable(gameId)
+    } else if (event.type === 'bid_made') {
+      if (gameId) loadTable(gameId)
     }
   })
 
@@ -207,6 +368,16 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
       .finally(() => setBusy(false))
   }
 
+  const handleBid = (action: 'pass' | 'order_up' | 'call_suit', suit?: Suit, alone?: boolean) => {
+    if (!gameId || !handInfo || busy) return
+    setBusy(true)
+    setError(null)
+    invokeFunction('make-bid', { handId: handInfo.handId, action, suit, alone })
+      .then(() => loadTable(gameId))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to submit bid'))
+      .finally(() => setBusy(false))
+  }
+
   if (screen === 'entry') {
     return (
       <div className={styles.page}>
@@ -249,12 +420,58 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
   }
 
   if (screen === 'started') {
-    return (
-      <div className={styles.page}>
-        <div className={styles.card}>
-          <h1 className={styles.title}>Game started</h1>
-          <p className={styles.loadingText}>Game started. Table view coming in the next checkpoint.</p>
+    if (tableLoading || !handInfo) {
+      return (
+        <div className={styles.page}>
+          <p className={styles.loadingText}>Loading table...</p>
         </div>
+      )
+    }
+
+    const mySeat = playerRows.find((r) => r.userId === user?.id)?.seat ?? null
+    const gameSeats = buildGameSeats(playerRows, handInfo.dealerSeat, user?.id ?? null, bidState?.passedSeats ?? [])
+
+    let bidPanel: ReactNode = <p className={styles.statusLabel}>{statusLabelFor(handInfo.status)}</p>
+
+    if (handInfo.status === 'bidding' && bidState) {
+      if (mySeat !== null && bidState.nextSeat === mySeat) {
+        bidPanel =
+          bidState.round === 1 ? (
+            <BidPrompt
+              round={1}
+              turnedUpSuit={bidState.turnedUpCard.suit}
+              isDealer={mySeat === handInfo.dealerSeat}
+              onOrderUp={(alone) => handleBid('order_up', undefined, alone)}
+              onPass={() => handleBid('pass')}
+              disabled={busy}
+            />
+          ) : (
+            <BidPrompt
+              round={2}
+              legalSuits={SUITS.filter((s) => s !== bidState.turnedUpCard.suit)}
+              onCallSuit={(suit, alone) => handleBid('call_suit', suit, alone)}
+              onPass={() => handleBid('pass')}
+              disabled={busy}
+            />
+          )
+      } else {
+        const waitingName =
+          bidState.nextSeat !== null ? (playerRows.find((r) => r.seat === bidState.nextSeat)?.name ?? 'next player') : 'next player'
+        bidPanel = <p className={styles.statusLabel}>Waiting for {waitingName} to bid</p>
+      }
+    }
+
+    return (
+      <div className={styles.tablePage}>
+        {bidPanel}
+        {error && <p className={styles.errorBanner}>{error}</p>}
+        <GameTable
+          seats={gameSeats}
+          trick={[]}
+          trumpSuit={handInfo.trumpSuit}
+          score={{ us: 0, them: 0 }}
+          hand={myHand}
+        />
       </div>
     )
   }
