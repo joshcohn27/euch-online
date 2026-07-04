@@ -28,6 +28,15 @@
   border: 2px solid #ba7517;
 }
 
+.clickable {
+  cursor: pointer;
+}
+
+.selected {
+  transform: translateY(-14px);
+  box-shadow: 0 0 0 3px #fac775, 0 6px 10px rgba(0, 0, 0, 0.35);
+}
+
 .faceDown {
   background-color: #16264a;
   background-image:

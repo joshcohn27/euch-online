@@ -9,9 +9,18 @@ interface PlayingCardProps {
   size?: PlayingCardSize
   isTrump?: boolean
   faceDown?: boolean
+  selected?: boolean
+  onClick?: () => void
 }
 
-export default function PlayingCard({ card, size = 'small', isTrump = false, faceDown = false }: PlayingCardProps) {
+export default function PlayingCard({
+  card,
+  size = 'small',
+  isTrump = false,
+  faceDown = false,
+  selected = false,
+  onClick,
+}: PlayingCardProps) {
   const sizeClass = size === 'large' ? styles.large : styles.small
 
   if (faceDown || !card) {
@@ -27,8 +36,11 @@ export default function PlayingCard({ card, size = 'small', isTrump = false, fac
 
   return (
     <div
-      className={`${styles.card} ${sizeClass} ${isTrump ? styles.trump : ''}`}
+      className={`${styles.card} ${sizeClass} ${isTrump ? styles.trump : ''} ${selected ? styles.selected : ''} ${onClick ? styles.clickable : ''}`}
       style={{ color }}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
     >
       <div className={styles.cornerTopLeft}>
         <span className={styles.rank}>{card.rank}</span>

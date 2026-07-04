@@ -128,6 +128,7 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
   const [handInfo, setHandInfo] = useState<HandInfo | null>(null)
   const [bidState, setBidState] = useState<BidState | null>(null)
   const [myHand, setMyHand] = useState<Card[]>([])
+  const [selectedDiscardCard, setSelectedDiscardCard] = useState<Card | null>(null)
   const [joinCodeInput, setJoinCodeInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [lobbyLoading, setLobbyLoading] = useState(false)
@@ -241,6 +242,10 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
         status: hand.status as string,
       })
 
+      if (hand.status !== 'discarding') {
+        setSelectedDiscardCard(null)
+      }
+
       const bidRound = hand.bid_round as 1 | 2 | null
       if (hand.status === 'bidding' && bidRound) {
         const { data: bids, error: bidsError } = await supabase
@@ -318,6 +323,8 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
       if (gameId) loadTable(gameId)
     } else if (event.type === 'bid_made') {
       if (gameId) loadTable(gameId)
+    } else if (event.type === 'card_discarded') {
+      if (gameId) loadTable(gameId)
     }
   })
 
@@ -378,6 +385,19 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
       .finally(() => setBusy(false))
   }
 
+  const handleDiscard = () => {
+    if (!gameId || !handInfo || !selectedDiscardCard || busy) return
+    setBusy(true)
+    setError(null)
+    invokeFunction('discard-card', { handId: handInfo.handId, card: selectedDiscardCard })
+      .then(() => {
+        setSelectedDiscardCard(null)
+        return loadTable(gameId)
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to discard'))
+      .finally(() => setBusy(false))
+  }
+
   if (screen === 'entry') {
     return (
       <div className={styles.page}>
@@ -430,12 +450,13 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
 
     const mySeat = playerRows.find((r) => r.userId === user?.id)?.seat ?? null
     const gameSeats = buildGameSeats(playerRows, handInfo.dealerSeat, user?.id ?? null, bidState?.passedSeats ?? [])
+    const isMyDiscardTurn = handInfo.status === 'discarding' && mySeat === handInfo.dealerSeat
 
-    let bidPanel: ReactNode = <p className={styles.statusLabel}>{statusLabelFor(handInfo.status)}</p>
+    let topPanel: ReactNode = <p className={styles.statusLabel}>{statusLabelFor(handInfo.status)}</p>
 
     if (handInfo.status === 'bidding' && bidState) {
       if (mySeat !== null && bidState.nextSeat === mySeat) {
-        bidPanel =
+        topPanel =
           bidState.round === 1 ? (
             <BidPrompt
               round={1}
@@ -457,13 +478,32 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
       } else {
         const waitingName =
           bidState.nextSeat !== null ? (playerRows.find((r) => r.seat === bidState.nextSeat)?.name ?? 'next player') : 'next player'
-        bidPanel = <p className={styles.statusLabel}>Waiting for {waitingName} to bid</p>
+        topPanel = <p className={styles.statusLabel}>Waiting for {waitingName} to bid</p>
+      }
+    } else if (handInfo.status === 'discarding') {
+      if (isMyDiscardTurn) {
+        topPanel = (
+          <div className={styles.discardBar}>
+            <p className={styles.statusLabel}>Select a card to discard</p>
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={handleDiscard}
+              disabled={!selectedDiscardCard || busy}
+            >
+              Discard
+            </button>
+          </div>
+        )
+      } else {
+        const dealerName = playerRows.find((r) => r.seat === handInfo.dealerSeat)?.name ?? 'the dealer'
+        topPanel = <p className={styles.statusLabel}>Waiting for {dealerName} to discard</p>
       }
     }
 
     return (
       <div className={styles.tablePage}>
-        {bidPanel}
+        {topPanel}
         {error && <p className={styles.errorBanner}>{error}</p>}
         <GameTable
           seats={gameSeats}
@@ -471,6 +511,8 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
           trumpSuit={handInfo.trumpSuit}
           score={{ us: 0, them: 0 }}
           hand={myHand}
+          onCardClick={isMyDiscardTurn ? (card) => setSelectedDiscardCard(card) : undefined}
+          selectedCard={isMyDiscardTurn ? selectedDiscardCard : null}
         />
       </div>
     )

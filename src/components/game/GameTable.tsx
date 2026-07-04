@@ -25,6 +25,8 @@ export interface GameTableProps {
   trumpSuit?: Suit | null
   score: { us: number; them: number }
   hand: Card[]
+  onCardClick?: (card: Card) => void
+  selectedCard?: Card | null
 }
 
 function findSeat(seats: GameSeat[], seatNum: Seat): GameSeat | undefined {
@@ -62,7 +64,7 @@ function TrickSlot({ card, isTrump }: { card: Card | null; isTrump: boolean }) {
   return <PlayingCard card={card} size="small" isTrump={isTrump} />
 }
 
-export default function GameTable({ seats, trick, trumpSuit, score, hand }: GameTableProps) {
+export default function GameTable({ seats, trick, trumpSuit, score, hand, onCardClick, selectedCard }: GameTableProps) {
   const you = seats.find((s) => s.isYou)
   const youSeatNum = you?.seat ?? 0
   const partner = findSeat(seats, ((youSeatNum + 2) % 4) as Seat)
@@ -142,7 +144,13 @@ export default function GameTable({ seats, trick, trumpSuit, score, hand }: Game
               className={styles.handCard}
               style={{ transform: `rotate(${offset * 6}deg) translateY(${Math.abs(offset) * 6}px)` }}
             >
-              <PlayingCard card={card} size="large" isTrump={isTrump(card)} />
+              <PlayingCard
+                card={card}
+                size="large"
+                isTrump={isTrump(card)}
+                selected={selectedCard != null && selectedCard.suit === card.suit && selectedCard.rank === card.rank}
+                onClick={onCardClick ? () => onCardClick(card) : undefined}
+              />
             </div>
           )
         })}

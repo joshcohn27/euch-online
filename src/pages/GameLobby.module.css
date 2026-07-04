@@ -143,3 +143,14 @@
   font-weight: 600;
   margin: 0;
 }
+
+.discardBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.discardBar .primaryButton {
+  padding: 6px 16px;
+  font-size: 13px;
+}
