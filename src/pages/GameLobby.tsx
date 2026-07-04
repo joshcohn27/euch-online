@@ -10,7 +10,7 @@ import type { GameEvent } from '../hooks/useGameChannel'
 import Lobby from '../components/game/Lobby'
 import type { LobbySeat } from '../components/game/Lobby'
 import GameTable from '../components/game/GameTable'
-import type { GameSeat } from '../components/game/GameTable'
+import type { GameSeat, TrickCard } from '../components/game/GameTable'
 import BidPrompt from '../components/game/BidPrompt'
 import styles from './GameLobby.module.css'
 
@@ -54,6 +54,26 @@ interface BidState {
   nextSeat: Seat | null
   turnedUpCard: Card
   passedSeats: Seat[]
+}
+
+interface TrickState {
+  trickNumber: number
+  leadSeat: Seat
+  cardsPlayed: { seat: Seat; card: Card }[]
+  winnerSeat: Seat | null
+}
+
+// Mirrors play-card's own "whose turn is it" derivation: once a trick is complete, its winner
+// leads next (no trick row exists for that yet), otherwise it's whoever is next after the lead.
+function deriveExpectedPlaySeat(trick: TrickState): Seat {
+  if (trick.winnerSeat !== null) {
+    return trick.winnerSeat
+  }
+  return ((trick.leadSeat + trick.cardsPlayed.length) % 4) as Seat
+}
+
+function buildTrickCards(cardsPlayed: { seat: Seat; card: Card }[]): TrickCard[] {
+  return SEATS.map((seat) => ({ seat, card: cardsPlayed.find((p) => p.seat === seat)?.card ?? null }))
 }
 
 // Bidding/trick state isn't wired up until checkpoints 5-8, so this is a plain label rather
@@ -127,6 +147,7 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
   const [playerRows, setPlayerRows] = useState<PlayerRow[]>([])
   const [handInfo, setHandInfo] = useState<HandInfo | null>(null)
   const [bidState, setBidState] = useState<BidState | null>(null)
+  const [trickState, setTrickState] = useState<TrickState | null>(null)
   const [myHand, setMyHand] = useState<Card[]>([])
   const [selectedDiscardCard, setSelectedDiscardCard] = useState<Card | null>(null)
   const [joinCodeInput, setJoinCodeInput] = useState('')
@@ -270,6 +291,45 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
         setBidState(null)
       }
 
+      if (hand.status === 'playing') {
+        const { data: lastTrick, error: trickError } = await supabase
+          .from('tricks')
+          .select('id, trick_number, lead_seat, winner_seat')
+          .eq('hand_id', hand.id)
+          .order('trick_number', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        if (trickError) {
+          setError('Failed to load trick state')
+          return
+        }
+
+        if (!lastTrick) {
+          setTrickState({ trickNumber: 1, leadSeat: ((dealerSeat + 1) % 4) as Seat, cardsPlayed: [], winnerSeat: null })
+        } else {
+          const { data: plays, error: playsError } = await supabase
+            .from('trick_plays')
+            .select('seat, card')
+            .eq('trick_id', lastTrick.id)
+            .order('play_order', { ascending: true })
+
+          if (playsError) {
+            setError('Failed to load trick plays')
+            return
+          }
+
+          setTrickState({
+            trickNumber: lastTrick.trick_number as number,
+            leadSeat: lastTrick.lead_seat as Seat,
+            cardsPlayed: (plays ?? []).map((p) => ({ seat: p.seat as Seat, card: p.card as Card })),
+            winnerSeat: lastTrick.winner_seat as Seat | null,
+          })
+        }
+      } else {
+        setTrickState(null)
+      }
+
       const cardsData = await invokeFunction<{ seat: number; cards: Card[] }>('get-my-hand', { handId: hand.id })
       setMyHand(cardsData.cards)
     } catch (err) {
@@ -324,6 +384,8 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
     } else if (event.type === 'bid_made') {
       if (gameId) loadTable(gameId)
     } else if (event.type === 'card_discarded') {
+      if (gameId) loadTable(gameId)
+    } else if (event.type === 'card_played') {
       if (gameId) loadTable(gameId)
     }
   })
@@ -398,6 +460,16 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
       .finally(() => setBusy(false))
   }
 
+  const handlePlayCard = (card: Card) => {
+    if (!gameId || !handInfo || busy) return
+    setBusy(true)
+    setError(null)
+    invokeFunction('play-card', { handId: handInfo.handId, card })
+      .then(() => loadTable(gameId))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to play card'))
+      .finally(() => setBusy(false))
+  }
+
   if (screen === 'entry') {
     return (
       <div className={styles.page}>
@@ -451,6 +523,13 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
     const mySeat = playerRows.find((r) => r.userId === user?.id)?.seat ?? null
     const gameSeats = buildGameSeats(playerRows, handInfo.dealerSeat, user?.id ?? null, bidState?.passedSeats ?? [])
     const isMyDiscardTurn = handInfo.status === 'discarding' && mySeat === handInfo.dealerSeat
+    const isHandAllTricksDone = trickState !== null && trickState.trickNumber === 5 && trickState.winnerSeat !== null
+    const isMyPlayTurn =
+      handInfo.status === 'playing' &&
+      trickState !== null &&
+      !isHandAllTricksDone &&
+      mySeat !== null &&
+      deriveExpectedPlaySeat(trickState) === mySeat
 
     let topPanel: ReactNode = <p className={styles.statusLabel}>{statusLabelFor(handInfo.status)}</p>
 
@@ -499,6 +578,19 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
         const dealerName = playerRows.find((r) => r.seat === handInfo.dealerSeat)?.name ?? 'the dealer'
         topPanel = <p className={styles.statusLabel}>Waiting for {dealerName} to discard</p>
       }
+    } else if (handInfo.status === 'playing' && trickState) {
+      if (isHandAllTricksDone) {
+        topPanel = <p className={styles.statusLabel}>Hand complete, no next steps yet</p>
+      } else if (trickState.winnerSeat !== null) {
+        const winnerName = playerRows.find((r) => r.seat === trickState.winnerSeat)?.name ?? 'Someone'
+        topPanel = <p className={styles.statusLabel}>{winnerName} wins the trick</p>
+      } else if (isMyPlayTurn) {
+        topPanel = <p className={styles.statusLabel}>Your turn to play</p>
+      } else {
+        const expectedSeat = deriveExpectedPlaySeat(trickState)
+        const turnName = playerRows.find((r) => r.seat === expectedSeat)?.name ?? 'next player'
+        topPanel = <p className={styles.statusLabel}>Waiting for {turnName} to play</p>
+      }
     }
 
     return (
@@ -507,11 +599,17 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
         {error && <p className={styles.errorBanner}>{error}</p>}
         <GameTable
           seats={gameSeats}
-          trick={[]}
+          trick={trickState ? buildTrickCards(trickState.cardsPlayed) : []}
           trumpSuit={handInfo.trumpSuit}
           score={{ us: 0, them: 0 }}
           hand={myHand}
-          onCardClick={isMyDiscardTurn ? (card) => setSelectedDiscardCard(card) : undefined}
+          onCardClick={
+            isMyDiscardTurn
+              ? (card) => setSelectedDiscardCard(card)
+              : isMyPlayTurn
+                ? (card) => handlePlayCard(card)
+                : undefined
+          }
           selectedCard={isMyDiscardTurn ? selectedDiscardCard : null}
         />
       </div>
