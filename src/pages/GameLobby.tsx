@@ -117,6 +117,14 @@ function buildGameSeats(
   })
 }
 
+async function fetchGameStatus(id: string): Promise<string> {
+  const { data, error } = await supabase.from('games').select('status').eq('id', id).single()
+  if (error || !data) {
+    throw new Error('Failed to load game status')
+  }
+  return data.status as string
+}
+
 async function invokeFunction<T>(name: string, body?: Record<string, unknown>): Promise<T> {
   const { data, error } = await supabase.functions.invoke<T>(name, body ? { body } : undefined)
   if (error) {
@@ -351,17 +359,21 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
 
   // A join code in the URL (fresh page load, refresh, or shared link) is resolved the same way
   // as the manual join form -- join-game is idempotent for a caller who is already seated, so
-  // this also covers the creator reloading their own lobby.
+  // this also covers the creator reloading their own lobby. games.status is checked directly
+  // rather than always defaulting to the lobby screen, so reloading into an already-started
+  // game goes straight to the table instead of briefly (or persistently) showing Start Game.
   useEffect(() => {
     if (!initialJoinCode) return
     let cancelled = false
 
     invokeFunction<{ gameId: string; seat: number }>('join-game', { joinCode: initialJoinCode })
-      .then((data) => {
+      .then(async (data) => {
         if (cancelled) return
         setGameId(data.gameId)
         setJoinCode(initialJoinCode.toUpperCase())
-        setScreen('lobby')
+        const status = await fetchGameStatus(data.gameId)
+        if (cancelled) return
+        setScreen(status === 'playing' ? 'started' : 'lobby')
       })
       .catch((err) => {
         if (cancelled) return
@@ -398,7 +410,8 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
       setJoinCode(data.joinCode)
       setGameId(data.gameId)
       updateUrlJoinCode(data.joinCode)
-      setScreen('lobby')
+      const status = await fetchGameStatus(data.gameId)
+      setScreen(status === 'playing' ? 'started' : 'lobby')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create game')
     } finally {
@@ -419,7 +432,8 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
       const data = await invokeFunction<{ gameId: string; seat: number }>('join-game', { joinCode: trimmed })
       setGameId(data.gameId)
       updateUrlJoinCode(trimmed.toUpperCase())
-      setScreen('lobby')
+      const status = await fetchGameStatus(data.gameId)
+      setScreen(status === 'playing' ? 'started' : 'lobby')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to join game')
     } finally {
