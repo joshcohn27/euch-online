@@ -546,10 +546,12 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
       deriveExpectedPlaySeat(trickState) === mySeat
 
     let topPanel: ReactNode = <p className={styles.statusLabel}>{statusLabelFor(handInfo.status)}</p>
+    let centerContent: ReactNode = null
 
     if (handInfo.status === 'bidding' && bidState) {
+      topPanel = null
       if (mySeat !== null && bidState.nextSeat === mySeat) {
-        topPanel =
+        centerContent =
           bidState.round === 1 ? (
             <BidPrompt
               round={1}
@@ -571,7 +573,7 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
       } else {
         const waitingName =
           bidState.nextSeat !== null ? (playerRows.find((r) => r.seat === bidState.nextSeat)?.name ?? 'next player') : 'next player'
-        topPanel = <p className={styles.statusLabel}>Waiting for {waitingName} to bid</p>
+        centerContent = <p className={styles.statusLabel}>Waiting for {waitingName} to bid</p>
       }
     } else if (handInfo.status === 'discarding') {
       if (isMyDiscardTurn) {
@@ -617,6 +619,9 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
           trumpSuit={handInfo.trumpSuit}
           score={{ us: 0, them: 0 }}
           hand={myHand}
+          status={handInfo.status}
+          turnedUpCard={bidState?.turnedUpCard ?? null}
+          centerContent={centerContent}
           onCardClick={
             isMyDiscardTurn
               ? (card) => setSelectedDiscardCard(card)

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { Card, Seat, Suit } from '../../engine/types.ts'
 import { getEffectiveSuit } from '../../engine/trumpRules.ts'
 import PlayingCard from './PlayingCard.tsx'
@@ -25,6 +26,9 @@ export interface GameTableProps {
   trumpSuit?: Suit | null
   score: { us: number; them: number }
   hand: Card[]
+  status: string
+  turnedUpCard?: Card | null
+  centerContent?: ReactNode
   onCardClick?: (card: Card) => void
   selectedCard?: Card | null
 }
@@ -64,7 +68,18 @@ function TrickSlot({ card, isTrump }: { card: Card | null; isTrump: boolean }) {
   return <PlayingCard card={card} size="small" isTrump={isTrump} />
 }
 
-export default function GameTable({ seats, trick, trumpSuit, score, hand, onCardClick, selectedCard }: GameTableProps) {
+export default function GameTable({
+  seats,
+  trick,
+  trumpSuit,
+  score,
+  hand,
+  status,
+  turnedUpCard,
+  centerContent,
+  onCardClick,
+  selectedCard,
+}: GameTableProps) {
   const you = seats.find((s) => s.isYou)
   const youSeatNum = you?.seat ?? 0
   const partner = findSeat(seats, ((youSeatNum + 2) % 4) as Seat)
@@ -106,23 +121,36 @@ export default function GameTable({ seats, trick, trumpSuit, score, hand, onCard
           </div>
         )}
 
-        <div className={styles.trickArea}>
-          {(
-            [
-              { className: styles.trickTop, seat: partner },
-              { className: styles.trickLeft, seat: left },
-              { className: styles.trickRight, seat: right },
-              { className: styles.trickBottom, seat: you },
-            ] as const
-          ).map(({ className, seat }, index) => {
-            const card = seat ? findTrickCard(trick, seat.seat) : null
-            return (
-              <div className={className} key={index}>
-                <TrickSlot card={card} isTrump={card ? isTrump(card) : false} />
+        {status === 'playing' && (
+          <div className={styles.trickArea}>
+            {(
+              [
+                { className: styles.trickTop, seat: partner },
+                { className: styles.trickLeft, seat: left },
+                { className: styles.trickRight, seat: right },
+                { className: styles.trickBottom, seat: you },
+              ] as const
+            ).map(({ className, seat }, index) => {
+              const card = seat ? findTrickCard(trick, seat.seat) : null
+              return (
+                <div className={className} key={index}>
+                  <TrickSlot card={card} isTrump={card ? isTrump(card) : false} />
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {(turnedUpCard || centerContent) && (
+          <div className={styles.centerOverlay}>
+            {turnedUpCard && (
+              <div className={styles.turnedUpCardWrap}>
+                <PlayingCard card={turnedUpCard} size="small" />
               </div>
-            )
-          })}
-        </div>
+            )}
+            {centerContent}
+          </div>
+        )}
       </div>
 
       {you && (
