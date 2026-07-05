@@ -275,8 +275,8 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
         setSelectedDiscardCard(null)
       }
 
-      const bidRound = hand.bid_round as 1 | 2 | null
-      if (hand.status === 'bidding' && bidRound) {
+      if (hand.status === 'bidding') {
+        const bidRound = (hand.bid_round as 1 | 2 | null) ?? 1
         const { data: bids, error: bidsError } = await supabase
           .from('bids')
           .select('seat, action')
