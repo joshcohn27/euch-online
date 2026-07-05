@@ -386,42 +386,52 @@ deno_version = 2
 # secret_key = "env(SECRET_VALUE)"
 
 [functions.deal-hand]
-# Requires a valid user JWT on every call; the function additionally checks the caller is one
+# verify_jwt is off: the platform-level JWT check runs before CORS preflight (OPTIONS) is
+# handled, and preflight requests never carry an Authorization header, so it blocks every
+# browser call. The function itself still requires and verifies a valid user JWT via
+# auth.getUser() on a caller-scoped client before doing anything, so this doesn't weaken auth,
+# it just moves the check past the platform's preflight gate. Also checks the caller is one
 # of the 4 seated players in the target game.
-verify_jwt = true
+verify_jwt = false
 
 [functions.get-my-hand]
-# Requires a valid user JWT on every call; the function additionally checks the caller is one
-# of the 4 seated players in the target game before returning only their own seat's cards.
-verify_jwt = true
+# verify_jwt off for the same reason as deal-hand (see above) -- auth is still enforced via
+# auth.getUser() inside the function. Additionally checks the caller is one of the 4 seated
+# players in the target game before returning only their own seat's cards.
+verify_jwt = false
 
 [functions.play-card]
-# Requires a valid user JWT on every call; the function additionally checks the caller is one
-# of the 4 seated players in the target game, that it is their turn, and that the play is legal
-# before recording it -- this is the sole server-side gate on trick_plays writes.
-verify_jwt = true
+# verify_jwt off for the same reason as deal-hand (see above) -- auth is still enforced via
+# auth.getUser() inside the function. Additionally checks the caller is one of the 4 seated
+# players in the target game, that it is their turn, and that the play is legal before
+# recording it -- this is the sole server-side gate on trick_plays writes.
+verify_jwt = false
 
 [functions.make-bid]
-# Requires a valid user JWT on every call; the function additionally checks the caller is one
-# of the 4 seated players in the target game and that it is their turn to bid before recording
-# the bid and, on a successful call, finalizing trump/maker on the hand.
-verify_jwt = true
+# verify_jwt off for the same reason as deal-hand (see above) -- auth is still enforced via
+# auth.getUser() inside the function. Additionally checks the caller is one of the 4 seated
+# players in the target game and that it is their turn to bid before recording the bid and,
+# on a successful call, finalizing trump/maker on the hand.
+verify_jwt = false
 
 [functions.discard-card]
-# Requires a valid user JWT on every call; the function additionally checks the caller is the
-# dealer for the target hand and that the hand is awaiting a discard before recording it.
-verify_jwt = true
+# verify_jwt off for the same reason as deal-hand (see above) -- auth is still enforced via
+# auth.getUser() inside the function. Additionally checks the caller is the dealer for the
+# target hand and that the hand is awaiting a discard before recording it.
+verify_jwt = false
 
 [functions.create-game]
-# Requires a valid user JWT on every call; creates the game and seats the caller at seat 0
-# using the service role, since games/players have no client-side insert policy yet.
-verify_jwt = true
+# verify_jwt off for the same reason as deal-hand (see above) -- auth is still enforced via
+# auth.getUser() inside the function. Creates the game and seats the caller at seat 0 using
+# the service role, since games/players have no client-side insert policy yet.
+verify_jwt = false
 
 [functions.join-game]
-# Requires a valid user JWT on every call; the function additionally checks whether the caller
-# is already seated (returns their existing seat if so) and that the game isn't full before
-# seating them at the lowest open seat.
-verify_jwt = true
+# verify_jwt off for the same reason as deal-hand (see above) -- auth is still enforced via
+# auth.getUser() inside the function. Additionally checks whether the caller is already seated
+# (returns their existing seat if so) and that the game isn't full before seating them at the
+# lowest open seat.
+verify_jwt = false
 
 [analytics]
 enabled = true
