@@ -85,11 +85,27 @@ export default function DevPreview() {
       </Section>
 
       <Section title="GameTable">
-        <GameTable seats={mockSeats} trick={mockTrick} trumpSuit="hearts" score={{ us: 4, them: 7 }} hand={mockHand} />
+        <GameTable seats={mockSeats} trick={mockTrick} trumpSuit="hearts" score={{ us: 4, them: 7 }} hand={mockHand} status="playing" />
       </Section>
 
       <Section title="GameTable — bidding (no trump yet)">
-        <GameTable seats={mockSeats} trick={[]} trumpSuit={null} score={{ us: 0, them: 0 }} hand={mockHand} />
+        <GameTable
+          seats={mockSeats}
+          trick={[]}
+          trumpSuit={null}
+          score={{ us: 0, them: 0 }}
+          hand={mockHand}
+          status="bidding"
+          turnedUpCard={c('hearts', 'A')}
+          centerContent={
+            <BidPrompt
+              round={2}
+              legalSuits={['clubs', 'spades', 'diamonds']}
+              onCallSuit={(suit, alone) => console.log('call suit', { suit, alone })}
+              onPass={() => console.log('pass')}
+            />
+          }
+        />
       </Section>
 
       <Section title="BidPrompt — Round 1">

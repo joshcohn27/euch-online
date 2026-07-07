@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { Card, Seat, Suit } from '../../engine/types.ts'
 import { getEffectiveSuit } from '../../engine/trumpRules.ts'
+import { sortHand } from './handSort.ts'
 import PlayingCard from './PlayingCard.tsx'
 import { suitLabel, suitSymbol } from './suitDisplay.ts'
 import styles from './GameTable.module.css'
@@ -164,7 +165,7 @@ export default function GameTable({
       )}
 
       <div className={styles.hand}>
-        {hand.map((card, index) => {
+        {sortHand(hand, trumpSuit ?? null).map((card, index) => {
           const offset = index - (hand.length - 1) / 2
           return (
             <div
