@@ -556,7 +556,6 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
             <BidPrompt
               round={1}
               turnedUpSuit={bidState.turnedUpCard.suit}
-              isDealer={mySeat === handInfo.dealerSeat}
               onOrderUp={(alone) => handleBid('order_up', undefined, alone)}
               onPass={() => handleBid('pass')}
               disabled={busy}
@@ -621,6 +620,7 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
           hand={myHand}
           status={handInfo.status}
           turnedUpCard={bidState?.turnedUpCard ?? null}
+          turnedUpCardFaceDown={bidState?.round === 2}
           centerContent={centerContent}
           onCardClick={
             isMyDiscardTurn

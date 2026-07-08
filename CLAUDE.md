@@ -9,12 +9,13 @@ Real-time 4-player Euchre platform. React + Vite + TypeScript frontend, Supabase
 - Styling: plain CSS/CSS modules unless told otherwise
 
 ## Standing rules
-- Always run `npx tsc` after making changes and fix all resulting errors before considering a task done
+- Always run `npx tsc -b` (not plain `tsc`, which no-ops in this project-reference setup) after making changes and fix all resulting errors before considering a task done
 - No git commands except `git add`, `git commit`, and `git stash` — and only when explicitly told to run them. Never run these unprompted, never run any other git command (push, rebase, reset, etc.) at all
 - No em dashes, anywhere — code comments, UI copy, commit messages, any written output
 - Never touch game logic/rules engine code unless specifically asked — most tasks are additive, not rewrites
 - Ask before assuming schema fields, table names, or flow details that aren't given explicitly — don't invent columns or endpoints
 - Keep tasks scoped to exactly what's asked — don't add auth features while doing game-engine work, don't add UI polish while doing schema work, etc.
+- Before making any change to bidding, scoring, or rules-engine logic (`make-bid`, `discard-card`, `play-card`, `src/engine/*`, or anything governing what's legal in the game), read `docs/EUCHRE_RULES.md` first and cross-reference the change against it. If a request conflicts with what's documented there, flag the discrepancy explicitly rather than silently implementing the request or silently keeping the old behavior — ask which one is correct.
 
 ## Auth model
 - Accounts are mandatory. There is no guest/anonymous play anywhere in this app.

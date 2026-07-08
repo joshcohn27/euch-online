@@ -142,12 +142,6 @@ Deno.serve(async (req: Request) => {
     if (bidRequestAction === 'call_suit' && effectiveRound !== 2) {
       return jsonResponse({ error: 'call_suit is only valid in bidding round 2' }, 400)
     }
-    // The dealer gets a turn in round 1 (to pass or let it go to round 2), but per house rules
-    // they cannot order themselves up -- only round 2's call is open to the dealer.
-    if (bidRequestAction === 'order_up' && callerSeat === dealerSeat) {
-      return jsonResponse({ error: 'The dealer cannot order up the turned-up card in round 1' }, 400)
-    }
-
     const { data: existingBidRows, error: bidsError } = await db
       .from('bids')
       .select('seat, action, suit, alone')

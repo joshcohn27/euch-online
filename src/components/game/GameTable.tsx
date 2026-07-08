@@ -29,6 +29,7 @@ export interface GameTableProps {
   hand: Card[]
   status: string
   turnedUpCard?: Card | null
+  turnedUpCardFaceDown?: boolean
   centerContent?: ReactNode
   onCardClick?: (card: Card) => void
   selectedCard?: Card | null
@@ -77,6 +78,7 @@ export default function GameTable({
   hand,
   status,
   turnedUpCard,
+  turnedUpCardFaceDown,
   centerContent,
   onCardClick,
   selectedCard,
@@ -146,7 +148,7 @@ export default function GameTable({
           <div className={styles.centerOverlay}>
             {turnedUpCard && (
               <div className={styles.turnedUpCardWrap}>
-                <PlayingCard card={turnedUpCard} size="small" />
+                <PlayingCard card={turnedUpCard} size="small" faceDown={turnedUpCardFaceDown} />
               </div>
             )}
             {centerContent}

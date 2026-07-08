@@ -88,7 +88,7 @@ export default function DevPreview() {
         <GameTable seats={mockSeats} trick={mockTrick} trumpSuit="hearts" score={{ us: 4, them: 7 }} hand={mockHand} status="playing" />
       </Section>
 
-      <Section title="GameTable — bidding (no trump yet)">
+      <Section title="GameTable — bidding round 2 (turned-up card flipped face-down)">
         <GameTable
           seats={mockSeats}
           trick={[]}
@@ -97,6 +97,7 @@ export default function DevPreview() {
           hand={mockHand}
           status="bidding"
           turnedUpCard={c('hearts', 'A')}
+          turnedUpCardFaceDown
           centerContent={
             <BidPrompt
               round={2}
