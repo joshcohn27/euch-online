@@ -18,33 +18,20 @@
   border-radius: 200px / 170px;
 }
 
-.trumpBadge {
-  position: absolute;
-  top: 54px;
-  left: 78px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #fac775;
-  color: #412402;
-  font-weight: 600;
-  font-size: 14px;
-  padding: 6px 14px;
-  border-radius: 20px;
-}
-
-.trumpSymbol {
-  font-size: 16px;
-}
-
 .scoreRow {
   position: absolute;
-  top: 54px;
+  bottom: 54px;
   right: 78px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 6px;
+  gap: 2px;
+}
+
+.scoreLine {
+  color: #eaf6ee;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .pill {
@@ -58,31 +45,56 @@
 
 .partnerSeat {
   position: absolute;
-  top: 26px;
+  top: 14px;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 
 .leftSeat {
   position: absolute;
-  left: 56px;
+  left: 20px;
   top: 50%;
   transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 
 .rightSeat {
   position: absolute;
-  right: 56px;
+  right: 20px;
   top: 50%;
   transform: translateY(-50%);
-}
-
-.seatMarker,
-.youMarker {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+}
+
+.sideRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.opponentName {
+  color: #eaf6ee;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.opponentNameVertical {
+  color: #eaf6ee;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transform: rotate(90deg);
 }
 
 .avatar {
@@ -104,6 +116,13 @@
   font-weight: 500;
 }
 
+.youMarker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
 .badgeRow {
   display: flex;
   gap: 4px;
@@ -113,6 +132,24 @@
 
 .disconnected {
   opacity: 0.55;
+}
+
+.trumpIndicator {
+  width: 54px;
+  height: 76px;
+  flex-shrink: 0;
+  background: #fbfbf9;
+  border: 1.5px solid #d6d6cc;
+  border-radius: 9px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trumpIndicatorSymbol {
+  font-size: 28px;
+  line-height: 1;
 }
 
 .trickArea {
@@ -159,6 +196,19 @@
   border-radius: 9px;
 }
 
+.leadPrompt {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #eaf6ee;
+  font-size: 15px;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
 .centerOverlay {
   position: absolute;
   top: 50%;
@@ -169,11 +219,6 @@
   align-items: center;
   gap: 10px;
   max-width: 460px;
-}
-
-.turnedUpCardWrap {
-  display: flex;
-  justify-content: center;
 }
 
 .youRow {

@@ -156,6 +156,7 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
   const [handInfo, setHandInfo] = useState<HandInfo | null>(null)
   const [bidState, setBidState] = useState<BidState | null>(null)
   const [trickState, setTrickState] = useState<TrickState | null>(null)
+  const [trickCounts, setTrickCounts] = useState<Record<Seat, number>>({ 0: 0, 1: 0, 2: 0, 3: 0 })
   const [myHand, setMyHand] = useState<Card[]>([])
   const [selectedDiscardCard, setSelectedDiscardCard] = useState<Card | null>(null)
   const [joinCodeInput, setJoinCodeInput] = useState('')
@@ -300,18 +301,25 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
       }
 
       if (hand.status === 'playing') {
-        const { data: lastTrick, error: trickError } = await supabase
+        const { data: allTricks, error: tricksError } = await supabase
           .from('tricks')
           .select('id, trick_number, lead_seat, winner_seat')
           .eq('hand_id', hand.id)
-          .order('trick_number', { ascending: false })
-          .limit(1)
-          .maybeSingle()
+          .order('trick_number', { ascending: true })
 
-        if (trickError) {
+        if (tricksError) {
           setError('Failed to load trick state')
           return
         }
+
+        const tricks = allTricks ?? []
+        const counts: Record<Seat, number> = { 0: 0, 1: 0, 2: 0, 3: 0 }
+        for (const t of tricks) {
+          if (t.winner_seat !== null) counts[t.winner_seat as Seat] += 1
+        }
+        setTrickCounts(counts)
+
+        const lastTrick = tricks[tricks.length - 1] ?? null
 
         if (!lastTrick) {
           setTrickState({ trickNumber: 1, leadSeat: ((dealerSeat + 1) % 4) as Seat, cardsPlayed: [], winnerSeat: null })
@@ -336,6 +344,7 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
         }
       } else {
         setTrickState(null)
+        setTrickCounts({ 0: 0, 1: 0, 2: 0, 3: 0 })
       }
 
       const cardsData = await invokeFunction<{ seat: number; cards: Card[] }>('get-my-hand', { handId: hand.id })
@@ -544,6 +553,7 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
       !isHandAllTricksDone &&
       mySeat !== null &&
       deriveExpectedPlaySeat(trickState) === mySeat
+    const isMyLeadTurn = isMyPlayTurn && trickState !== null && trickState.cardsPlayed.length === 0
 
     let topPanel: ReactNode = <p className={styles.statusLabel}>{statusLabelFor(handInfo.status)}</p>
     let centerContent: ReactNode = null
@@ -599,6 +609,8 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
       } else if (trickState.winnerSeat !== null) {
         const winnerName = playerRows.find((r) => r.seat === trickState.winnerSeat)?.name ?? 'Someone'
         topPanel = <p className={styles.statusLabel}>{winnerName} wins the trick</p>
+      } else if (isMyLeadTurn) {
+        topPanel = null
       } else if (isMyPlayTurn) {
         topPanel = <p className={styles.statusLabel}>Your turn to play</p>
       } else {
@@ -621,6 +633,8 @@ export default function GameLobby({ initialJoinCode }: GameLobbyProps) {
           status={handInfo.status}
           turnedUpCard={bidState?.turnedUpCard ?? null}
           turnedUpCardFaceDown={bidState?.round === 2}
+          tricksWonBySeat={trickCounts}
+          showLeadPrompt={isMyLeadTurn}
           centerContent={centerContent}
           onCardClick={
             isMyDiscardTurn

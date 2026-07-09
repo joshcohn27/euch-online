@@ -85,7 +85,28 @@ export default function DevPreview() {
       </Section>
 
       <Section title="GameTable">
-        <GameTable seats={mockSeats} trick={mockTrick} trumpSuit="hearts" score={{ us: 4, them: 7 }} hand={mockHand} status="playing" />
+        <GameTable
+          seats={mockSeats}
+          trick={mockTrick}
+          trumpSuit="hearts"
+          score={{ us: 4, them: 7 }}
+          hand={mockHand}
+          status="playing"
+          tricksWonBySeat={{ 0: 1, 1: 2, 2: 0, 3: 1 }}
+        />
+      </Section>
+
+      <Section title="GameTable — your turn to lead">
+        <GameTable
+          seats={mockSeats}
+          trick={[]}
+          trumpSuit="hearts"
+          score={{ us: 4, them: 7 }}
+          hand={mockHand}
+          status="playing"
+          tricksWonBySeat={{ 0: 1, 1: 2, 2: 0, 3: 1 }}
+          showLeadPrompt
+        />
       </Section>
 
       <Section title="GameTable — bidding round 2 (turned-up card flipped face-down)">
