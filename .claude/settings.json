@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"Stop-Process -Id 25980 -Force\")",
+      "Bash(powershell -Command \"Stop-Process -Id 31648 -Force\")",
+      "Bash(git commit -m ' *)",
+      "Bash(powershell -Command \"Stop-Process -Id 15400 -Force\")",
+      "Bash(npx vitest *)",
+      "Bash(node -e \"console.log\\(require.resolve\\('playwright'\\)\\)\")",
+      "Bash(node \"C:\\\\Users\\\\joshc\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-joshc-OneDrive-Desktop-Personal-euch-online-euch-online\\\\ff134995-5796-49ba-859e-49dd43a324e0\\\\scratchpad\\\\crop-screenshot.cjs\")",
+      "Bash(node \"C:\\\\Users\\\\joshc\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-joshc-OneDrive-Desktop-Personal-euch-online-euch-online\\\\ff134995-5796-49ba-859e-49dd43a324e0\\\\scratchpad\\\\crop2.cjs\")",
+      "Bash(powershell -Command \"Stop-Process -Id 35672 -Force\")",
+      "Bash(echo \"TSC_EXIT:$?\")"
+    ]
+  }
+}
